@@ -1,0 +1,15 @@
+{
+  "name": "tinyrenderer.js",
+  "private": true,
+  "devDependencies": {
+    "@parcel/transformer-inline-string": "2.7.0",
+    "parcel": "^2.7.0",
+    "typescript": "^4.8.4"
+  },
+  "scripts": {
+    "start": "parcel src/*.html"
+  },
+  "dependencies": {
+    "src": "^1.1.2"
+  }
+}
