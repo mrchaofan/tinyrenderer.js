@@ -1,3 +1,5 @@
+import { barycentric, clamp, IRGBA, IVec2, IVec4 } from "./utils"
+
 export interface ICanvasOptions {
     width: number
     height: number
@@ -80,6 +82,36 @@ export default class Canvas {
             if (accumulation > dx) {
                 y += y1 > y0 ? 1 : -1;
                 accumulation -= 2 * dx;
+            }
+        }
+    }
+    bbox(...args: IVec2[]): [IVec2, IVec2] {
+        const minxy: IVec2 = {
+            x: Math.max(0, Math.min(...args.map(arg => arg.x))),
+            y: Math.max(0, Math.min(...args.map(arg => arg.y))),
+        }
+        const maxxy: IVec2 = {
+            x: Math.min(this.width, Math.max(...args.map(arg => arg.x))),
+            y: Math.min(this.height, Math.max(...args.map(arg => arg.y))),
+        }
+        return [minxy, maxxy];
+    }
+    triangle(a: IVec2, b: IVec2, c: IVec2, color: IRGBA) {
+        const bbox = this.bbox(a, b, c);
+        outer: for (let x = bbox[0].x; x <= bbox[1].x; x++) {
+            for (let y = bbox[0].y; y <= bbox[1].y; y++) {
+                const uv = barycentric({
+                    x, y
+                }, a, b, c)
+
+                if(!uv) {
+                    break outer;
+                }
+                
+                if (uv.x < 0 || uv.y < 0 || uv.z < 0) {
+                    continue
+                }
+                this.putPixel(x, y, color.r, color.g, color.b, color.a)
             }
         }
     }

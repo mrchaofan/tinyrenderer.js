@@ -1,4 +1,4 @@
-type Vec3 = [number, number, number];
+import { Vec3 } from "./utils"
 
 export default class ObjParser {
     static parse(str: string) {
