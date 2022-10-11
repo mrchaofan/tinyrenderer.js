@@ -1,7 +1,12 @@
+import fs from 'fs'
+import TgaLoader from 'tga-js';
+
 import objRaw from 'bundle-text:../obj/african_head.obj';
 import Canvas from "./Canvas";
 import ObjParser from './ObjParser';
 import { crossProduct, dotProduct, IVec2, IVec3, normalizeVector, Vec3 } from './utils';
+
+const textureBuffer = fs.readFileSync(__dirname + '/../texture/african_head_diffuse.tga');
 
 const canvas = new Canvas({
     width: 400,
@@ -10,12 +15,15 @@ const canvas = new Canvas({
 
 canvas.mount(document.getElementById('app')!);
 
-canvas.line(0, 0, 200, 200, undefined, 0, 0, 0);
-canvas.line(0, 400, 200, 200, undefined, 0, 0, 0);
-
 const lightV: Vec3 = [0, 0, -1];
 
 const obj = ObjParser.parse(objRaw);
+
+const tga = new TgaLoader();
+
+tga.load(textureBuffer);
+
+const textureData = tga.getImageData();
 
 obj.faces.forEach(face => {
     const vertices = face.slice(0, 3).map(vtn => {
@@ -42,11 +50,23 @@ obj.faces.forEach(face => {
     })
     const normalized = normalizeVector([normal.x, normal.y, normal.z]);
     const intensity = dotProduct(normalized, lightV);
+    const verticesOfTexture = face.slice(0, 3).map(vtn => {
+        const v = obj.textures[vtn[1]];
+        return {
+            x: v[0],
+            y: v[1],
+        }
+    }) as [IVec2, IVec2, IVec2]
     if (intensity > 0) {
-        canvas.triangle(...triangle, {
-            r: 255 * intensity,
-            g: 255 * intensity,
-            b: 255 * intensity,
+        canvas.triangle(...triangle, (uv) => {
+            const tx = Math.floor((verticesOfTexture[0].x * uv.x + verticesOfTexture[1].x * uv.y + verticesOfTexture[2].x * uv.z) * textureData.width);
+            const ty = Math.floor((1 - (verticesOfTexture[0].y * uv.x + verticesOfTexture[1].y * uv.y + verticesOfTexture[2].y * uv.z)) * textureData.height);
+            const offset = (tx + textureData.width * ty) * 4;
+            return {
+                r: textureData.data[offset] * intensity,
+                g: textureData.data[offset + 1] * intensity,
+                b: textureData.data[offset + 2] * intensity
+            }
         })
     }
 });

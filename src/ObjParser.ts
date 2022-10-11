@@ -9,12 +9,14 @@ export default class ObjParser {
                 obj.vertices.push(args.slice(1).map((arg) => parseFloat(arg)) as Vec3)
             } else if (args[0] === 'f') {
                 obj.faces.push(args.slice(1).map(arg => arg.split('/').map(n => parseInt(n) - 1)) as Vec3[])
+            } else if (args[0] === 'vt') {
+                obj.textures.push(args.slice(1).map((arg) => parseFloat(arg)) as Vec3)
             }
         })
         return obj;
     }
     
-    constructor(public vertices: Vec3[] = [], public faces: Vec3[][] = []) {
+    constructor(public vertices: Vec3[] = [], public faces: Vec3[][] = [], public textures: Vec3[] = []) {
 
     }
 }

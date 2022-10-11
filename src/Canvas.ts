@@ -43,32 +43,38 @@ export default class Canvas {
             return
         }
 
-        if (z && this.zBuffer(x, y) < z) {
-            this.zBuffer(x, y, z);
+        if (!z || z && this.zBuffer(x, y) < z) {
+            if (z) {
+                this.zBuffer(x, y, z);
+            }
             this.buffer.data[offset] = r;
             this.buffer.data[offset + 1] = g;
             this.buffer.data[offset + 2] = b;
             this.buffer.data[offset + 3] = a;
+            if (RafScheduler.queue.length === 0) {
+                RafScheduler.enqueue(this.updateCanvas.bind(this))
+            }
         }
 
-        if (RafScheduler.queue.length === 0) {
-            RafScheduler.enqueue(this.updateCanvas.bind(this))
-        }
         return offset;
     }
+
     updateCanvas() {
         this.zArray = new Array(this.width * this.height).fill(0)
         this.context.putImageData(this.buffer, 0, 0);
     }
+
     mount(el: HTMLElement, ref: Node | null = null) {
         el.insertBefore(this.canvas, ref)
         return this;
     }
+
     unMount() {
         if (this.canvas.parentNode) {
             this.canvas.parentNode.removeChild(this.canvas);
         }
     }
+    
     line(x0: number, y0: number, x1: number, y1: number, z: number | undefined, r: number, g: number, b: number, a?: number) {
         let transposed = false;
         if (Math.abs(x1 - x0) < Math.abs(y1 - y0)) {
@@ -93,6 +99,7 @@ export default class Canvas {
             }
         }
     }
+
     bbox(...args: IVec2[]): [IVec2, IVec2] {
         const minxy: IVec2 = {
             x: Math.max(0, Math.min(...args.map(arg => arg.x))),
@@ -104,7 +111,8 @@ export default class Canvas {
         }
         return [minxy, maxxy];
     }
-    triangle(a: IVec3, b: IVec3, c: IVec3, color: IRGBA) {
+
+    triangle(a: IVec3, b: IVec3, c: IVec3, color: IRGBA | ((uv: IVec3) => IRGBA)) {
         const bbox = this.bbox(a, b, c);
         outer: for (let x = bbox[0].x; x <= bbox[1].x; x++) {
             for (let y = bbox[0].y; y <= bbox[1].y; y++) {
@@ -120,10 +128,12 @@ export default class Canvas {
                     continue
                 }
                 const z = a.z * uv.x + b.z * uv.y + c.z * uv.z
-                this.putPixel(x, y, z, color.r, color.g, color.b, color.a)
+                const appliedColor = typeof color === 'function' ? color(uv) : color;
+                this.putPixel(x, y, z, appliedColor.r, appliedColor.g, appliedColor.b, appliedColor.a)
             }
         }
     }
+    
     zBuffer(x: number, y: number): number
     zBuffer(x: number, y: number, value: number): void
     zBuffer(x: number, y: number, value?: number) {
