@@ -10,25 +10,10 @@ const canvas = new Canvas({
 
 canvas.mount(document.getElementById('app')!);
 
-canvas.line(0, 0, 200, 200, 0, 0, 0);
-canvas.line(0, 400, 200, 200, 0, 0, 0);
+canvas.line(0, 0, 200, 200, undefined, 0, 0, 0);
+canvas.line(0, 400, 200, 200, undefined, 0, 0, 0);
 
-canvas.triangle({
-    x: 100,
-    y: 100,
-}, {
-    x: 200,
-    y: 200,
-}, {
-    x: 100,
-    y: 200
-}, {
-    r: 0,
-    g: 0,
-    b: 255,
-});
-
-const lightV: Vec3 = [0,0,-1];
+const lightV: Vec3 = [0, 0, -1];
 
 const obj = ObjParser.parse(objRaw);
 
@@ -41,10 +26,11 @@ obj.faces.forEach(face => {
             z: vertex[2],
         }
     }) as [IVec3, IVec3, IVec3];
-    const triangle = vertices.map(v => ({
+    const triangle: [IVec3, IVec3, IVec3] = vertices.map(v => ({
         x: Math.floor((v.x + 1) * canvas.width / 2),
-        y: Math.floor((v.y + 1) * canvas.height / 2)
-    })) as [IVec2, IVec2, IVec2];
+        y: Math.floor((v.y + 1) * canvas.height / 2),
+        z: v.z,
+    })) as [IVec3, IVec3, IVec3];
     const normal = crossProduct({
         x: vertices[2].x - vertices[0].x,
         y: vertices[2].y - vertices[0].y,

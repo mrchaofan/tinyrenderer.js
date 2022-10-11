@@ -9,8 +9,8 @@ const canvas = new Canvas({
 
 canvas.mount(document.getElementById('app')!);
 
-canvas.line(0, 0, 200, 200, 0, 0, 0);
-canvas.line(0, 400, 200, 200, 0, 0, 0);
+canvas.line(0, 0, 200, 200, undefined, 0, 0, 0);
+canvas.line(0, 400, 200, 200, undefined, 0, 0, 0);
 
 const obj = ObjParser.parse(objRaw);
 
@@ -23,7 +23,7 @@ obj.faces.forEach(face => {
         const x1 = Math.floor((v1[0] + 1) * canvas.width / 2)
         const y1 = Math.floor((v1[1] + 1) * canvas.height / 2)
 
-        canvas.line(x0, y0, x1, y1, 0, 0, 0);
+        canvas.line(x0, y0, x1, y1, undefined, 0, 0, 0);
     })
 });
 
